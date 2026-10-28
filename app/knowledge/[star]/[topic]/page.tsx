@@ -32,8 +32,12 @@ export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const routes = getAllKnowledgeRoutes();
-  // URL 用拼音 slug 替代中文，避开 Vercel/CDN 中文路由边界问题
-  return routes.map(r => ({ star: r.slug, topic: r.topic }));
+  if (routes.length > 0) {
+    return routes.map(r => ({ star: r.slug, topic: r.topic }));
+  }
+  // 开源版 STAR_DB 置空时返回全量组合，避免静态导出构建失败；
+  // 页面无数据时走 notFound()，与线上行为一致。
+  return ALL_STARS.flatMap(star => ALL_TOPICS.map(topic => ({ star: STAR_TO_SLUG[star], topic })));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ star: string; topic: string }> }) {
